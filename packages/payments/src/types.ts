@@ -1,5 +1,8 @@
 /**
  * @a3stack/payments — Type Definitions
+ *
+ * x402 supports any ERC-20 token via Permit2 + EIP-3009.
+ * USDC is the default; pass any token address via the `asset` field.
  */
 
 export interface PaymentClientConfig {
@@ -15,8 +18,8 @@ export interface PaymentClientConfig {
    */
   chains?: string[];
   /**
-   * Maximum USDC amount (in base units, 6 decimals) to auto-pay per request.
-   * e.g. "1000000" = 1.00 USDC
+   * Maximum token amount (in base units) to auto-pay per request.
+   * e.g. "1000000" = 1.00 USDC (6 decimals)
    * Defaults to "10000000" (10 USDC)
    */
   maxAmountPerRequest?: string;
@@ -26,12 +29,13 @@ export interface PaymentServerConfig {
   /** Address to receive payments */
   payTo: `0x${string}`;
   /**
-   * Required payment amount in USDC base units (6 decimals).
-   * e.g. "100000" = 0.10 USDC
+   * Required payment amount in token base units.
+   * e.g. "100000" = 0.10 USDC (6 decimals)
    */
   amount: string;
   /**
-   * Token asset address. Defaults to USDC on Base mainnet.
+   * ERC-20 token address to accept. Defaults to USDC on the configured network.
+   * Any ERC-20 token is supported via Permit2 + EIP-3009.
    */
   asset?: `0x${string}`;
   /**

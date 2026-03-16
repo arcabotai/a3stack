@@ -1,5 +1,7 @@
 /**
  * Payment Client — wraps x402/fetch for easy agent-to-agent payments
+ *
+ * Supports any ERC-20 token via Permit2 + EIP-3009. Defaults to USDC.
  */
 
 import { createPublicClient, createWalletClient, http, formatUnits } from "viem";
@@ -93,17 +95,19 @@ export class PaymentClient {
   }
 
   /**
-   * Check your USDC balance on a network
+   * Check your token balance on a network.
+   * Defaults to USDC. Pass any ERC-20 token address to check other tokens.
    */
   async getBalance(
     network = DEFAULT_NETWORK,
-    rpc?: string
+    rpc?: string,
+    tokenAddress?: `0x${string}`
   ): Promise<PaymentBalance> {
-    const usdcAddress = NETWORK_USDC[network];
-    if (!usdcAddress) {
+    const asset = tokenAddress ?? NETWORK_USDC[network];
+    if (!asset) {
       throw new Error(
-        `No USDC address configured for network "${network}". ` +
-          `Supported networks: ${Object.keys(NETWORK_USDC).join(", ")}`
+        `No default token address for network "${network}". ` +
+          `Pass a tokenAddress or use a supported network: ${Object.keys(NETWORK_USDC).join(", ")}`
       );
     }
 
@@ -112,18 +116,18 @@ export class PaymentClient {
 
     const [rawBalance, decimals, symbol] = await Promise.all([
       client.readContract({
-        address: usdcAddress,
+        address: asset,
         abi: ERC20_ABI,
         functionName: "balanceOf",
         args: [this.config.account.address],
       }) as Promise<bigint>,
       client.readContract({
-        address: usdcAddress,
+        address: asset,
         abi: ERC20_ABI,
         functionName: "decimals",
       }) as Promise<number>,
       client.readContract({
-        address: usdcAddress,
+        address: asset,
         abi: ERC20_ABI,
         functionName: "symbol",
       }) as Promise<string>,

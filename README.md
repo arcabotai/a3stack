@@ -13,7 +13,7 @@ The agent infra stack has three layers being built by different teams with no co
 | Layer | Tech | Status |
 |-------|------|--------|
 | **Identity** | ERC-8004 (on-chain agent registration) | Deployed on 17+ chains, no SDK |
-| **Payments** | x402 protocol, Circle USDC | npm packages exist, no agent integration |
+| **Payments** | x402 protocol, any ERC-20 (USDC, EURC, …) | npm packages exist, no agent integration |
 | **Data** | MCP servers, onchain oracles | SDK exists, no identity/payment layer |
 
 None of these layers talk to each other. This SDK is the glue.
@@ -62,7 +62,7 @@ const result = await client.callTool("analyze", { query: "ETH price trend" });
 
 ```
 @a3stack/identity   — ERC-8004 registration, verification, discovery
-@a3stack/payments   — x402 client (paying) + server (receiving)
+@a3stack/payments   — x402 client (paying) + server (receiving) — any ERC-20
 @a3stack/data       — MCP server/client with identity + payment
 @a3stack/core       — The glue: A3Stack class + all re-exports
 ```
@@ -135,6 +135,8 @@ const url = await getMcpEndpoint("eip155:8453:0x8004...#2376");
 
 ### `@a3stack/payments`
 
+x402 now supports **any ERC-20 token** via Permit2 + EIP-3009 (Transfer with Authorization). USDC is the default, but you can accept EURC, or any ERC-20 by passing its token address.
+
 #### Pay other agents (client)
 
 ```typescript
@@ -142,12 +144,15 @@ import { createPaymentClient } from "@a3stack/payments";
 
 const payer = createPaymentClient({ account });
 
-// Auto-pays x402 requirements
+// Auto-pays x402 requirements (works with any ERC-20 the server requests)
 const response = await payer.fetch("https://api.paidagent.ai/tool");
 
-// Check balance
+// Check USDC balance (default)
 const balance = await payer.getBalance("eip155:8453");
 // { amount: 1500000n, formatted: "1.500000", symbol: "USDC" }
+
+// Check any ERC-20 balance
+const eurcBalance = await payer.getBalance("eip155:8453", undefined, EURC_BASE);
 
 // Decode payment receipt from response
 const receipt = payer.decodeReceipt(response);
@@ -156,13 +161,23 @@ const receipt = payer.decodeReceipt(response);
 #### Accept payments (server)
 
 ```typescript
-import { createPaymentServer } from "@a3stack/payments";
+import { createPaymentServer, EURC_BASE } from "@a3stack/payments";
 
+// Accept USDC (default)
 const receiver = createPaymentServer({
   payTo: "0x1be93C...",
   amount: "100000",    // 0.10 USDC
   network: "eip155:8453",
   description: "My AI tool",
+});
+
+// Accept EURC instead
+const eurcReceiver = createPaymentServer({
+  payTo: "0x1be93C...",
+  amount: "100000",    // 0.10 EURC
+  asset: EURC_BASE,    // any ERC-20 address works here
+  network: "eip155:8453",
+  description: "My AI tool (Euro payments)",
 });
 
 // Express middleware
@@ -325,7 +340,7 @@ await agent.stop();
 
 | Protocol | Version | Package |
 |----------|---------|---------|
-| x402 | v2 (CAIP-2) | `@x402/fetch` + `@x402/evm` v2.4.0 |
+| x402 | v2 (CAIP-2) — any ERC-20 via Permit2 + EIP-3009 | `@x402/fetch` + `@x402/evm` v2.4.0 |
 | ERC-8004 | draft (2025-08-13) | Custom (this SDK) |
 | MCP | 2025-06-18 | `@modelcontextprotocol/sdk` v1.26.0 |
 
@@ -359,7 +374,7 @@ await agent.stop();
 
 ## Design Principles
 
-1. **Zero-config defaults** — Base + USDC sensible defaults
+1. **Zero-config defaults** — Base + USDC sensible defaults, any ERC-20 opt-in
 2. **Bring your own signer** — accepts viem Account objects, no key custody
 3. **Modular** — each package is standalone, core is opt-in
 4. **Non-custodial** — SDK never holds funds; only creates off-chain signatures

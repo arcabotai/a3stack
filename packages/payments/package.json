@@ -1,7 +1,7 @@
 {
   "name": "@a3stack/payments",
   "version": "0.1.0",
-  "description": "x402 payment flows for AI agents — client (paying) and server (receiving)",
+  "description": "x402 payment flows for AI agents — any ERC-20 token via Permit2 + EIP-3009",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

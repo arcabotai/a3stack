@@ -1,5 +1,7 @@
 /**
  * Payment Server — receive x402 payments in your HTTP server
+ *
+ * Accepts any ERC-20 token via Permit2 + EIP-3009. Defaults to USDC.
  */
 
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -196,7 +198,8 @@ export class PaymentServer {
           JSON.stringify({
             error: "Payment Required",
             message: this.config.description,
-            amount: `${this.config.amount} USDC base units`,
+            amount: `${this.config.amount} base units`,
+            asset: this.config.asset,
             network: this.config.network,
           })
         );
