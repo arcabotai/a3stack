@@ -1,10 +1,10 @@
 {
   "name": "a3stack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A3Stack CLI — identity, payments, and data for AI agents",
   "type": "module",
   "bin": {
-    "a3stack": "./bin/a3stack.js"
+    "a3stack": "bin/a3stack.js"
   },
   "files": [
     "bin/",
@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/arcabotai/a3stack"
+    "url": "git+https://github.com/arcabotai/a3stack.git"
   },
   "homepage": "https://a3stack.arcabot.ai"
 }
